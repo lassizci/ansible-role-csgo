@@ -1,0 +1,21 @@
+---
+csgo_gslt_token: ''
+csgo_gamemode: 1
+csgo_gametype: 0
+csgo_defaultmap: de_dust2
+csgo_mapgroup: random_classic
+csgo_port: 27015
+csgo_gotv_port: 27020
+csgo_clientport: 27005
+csgo_maxplayers: 16
+csgo_tickrate: 128
+csgo_user: csgo
+csgo_group: csgo
+csgo_install_dir: "/home/{{ csgo_user }}"
+csgo_updateonstart: 'off'
+csgo_password: "password"
+csgo_rcon_password: "rconpassword"
+csgo_servers:
+  - name: csgo-server1
+    ip: "0.0.0.0"
+    hostname: "CS:GO server #1"

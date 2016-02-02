@@ -1,0 +1,57 @@
+---
+- name: enable 32bit libs
+  command: dpkg --add-architecture i386
+  changed_when: false
+
+- name: install required packages
+  apt: name={{ item }} state=present update_cache=yes
+  with_items:
+    - tmux
+    - lib32gcc1 
+    - libstdc++6:i386
+
+- name: install lgsm script
+  copy: >
+    src=csgoserver dest={{ csgo_install_dir }}/csgoserver
+    owner={{ csgo_user }} group={{ csgo_group }} mode=0744
+
+- name: install csgo server
+  become_user: "{{ csgo_user }}"
+  command: >
+    chdir="{{ csgo_install_dir }}"
+    creates="{{ csgo_install_dir }}/serverfiles/srcds_linux" 
+    ./csgoserver auto-install
+
+- name: install start scripts
+  become_user: "{{ csgo_user }}"
+  template: >
+    src=csgoserver.j2
+    dest="{{ csgo_install_dir }}/csgoserver{{ item.0 + 1}}"
+    mode=0744
+  register: csgoserverscript
+  with_indexed_items:
+    - "{{ csgo_servers }}"
+
+- name: install server configs
+  become_user: "{{ csgo_user }}"
+  template: >
+    src=csgo-server.cfg.j2
+    dest="{{ csgo_install_dir }}/serverfiles/csgo/cfg/{{ item.1.name }}.cfg"
+    mode=0644
+  register: csgoservercfg
+  with_indexed_items:
+    - "{{ csgo_servers }}"
+
+- name: ensure server.cfg is empty
+  copy: >
+    content="" dest="{{ csgo_install_dir }}/serverfiles/csgo/cfg/server.cfg"
+    owner="{{ csgo_user }}" group="{{ csgo_group }}" mode=0644
+
+- name: start servers
+  become_user: "{{ csgo_user }}"
+  command:
+    chdir="{{ csgo_install_dir }}"
+    creates=".{{ item.1.name }}.lock"
+    ./csgoserver{{ item.0 + 1}} start
+  with_indexed_items:
+    - "{{ csgo_servers }}"
